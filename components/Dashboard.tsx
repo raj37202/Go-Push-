@@ -23,11 +23,47 @@ export default function Dashboard({ onBackToLanding, userEmail, initialPlan }: D
   const [activeTab, setActiveTab] = useState<"summary" | "builder" | "subscribers" | "automation" | "api" | "domains" | "billing" | "websites">("summary");
   
   // Websites & Apps link addition states with active counters and logs
-  const [appsWebsites, setAppsWebsites] = useState([
-    { name: "My Main Website", type: "Website", url: "https://myblogsite.com", status: "Active", added: "2026-05-29", spamScore: 98, risk: "Low", checkHistory: "The link refers to a reputable or standard SaaS portal structure. SSL protocols are certified and direct click payloads appear clean.", subscribersCount: 52400, notificationsSent: 12400 },
-    { name: "PushMobile Client", type: "Android App", url: "https://play.google.com/store/apps/pushnova", status: "Active", added: "2026-05-28", spamScore: 95, risk: "Low", checkHistory: "Official Play Store address. Trust verified.", subscribersCount: 15200, notificationsSent: 450 },
-    { name: "Promotional Blast Portal", type: "Website", url: "https://free-prizes-scam.biz", status: "Flagged", added: "2026-05-27", spamScore: 12, risk: "Critical", checkHistory: "Spam / Urgent Clickbait pattern detected! High-risk malicious redirects threat.", subscribersCount: 0, notificationsSent: 0 }
-  ]);
+  const [appsWebsites, setAppsWebsites] = useState<any[]>(() => {
+    const defaultApps = [
+      { name: "My Main Website", type: "Website", url: "https://myblogsite.com", status: "Active", added: "2026-05-29", spamScore: 98, risk: "Low", checkHistory: "The link refers to a reputable or standard SaaS portal structure. SSL protocols are certified and direct click payloads appear clean.", subscribersCount: 52400, notificationsSent: 12400 },
+      { name: "PushMobile Client", type: "Android App", url: "https://play.google.com/store/apps/pushnova", status: "Active", added: "2026-05-28", spamScore: 95, risk: "Low", checkHistory: "Official Play Store address. Trust verified.", subscribersCount: 15200, notificationsSent: 450 },
+      { name: "Promotional Blast Portal", type: "Website", url: "https://free-prizes-scam.biz", status: "Flagged", added: "2026-05-27", spamScore: 12, risk: "Critical", checkHistory: "Spam / Urgent Clickbait pattern detected! High-risk malicious redirects threat.", subscribersCount: 0, notificationsSent: 0 }
+    ];
+    if (typeof window !== "undefined") {
+      const persisted = localStorage.getItem("pushnova_apps_websites");
+      if (persisted) {
+        try {
+          return JSON.parse(persisted);
+        } catch (_) {
+          return defaultApps;
+        }
+      }
+    }
+    return defaultApps;
+  });
+
+  // Synchronize websites with localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("pushnova_apps_websites", JSON.stringify(appsWebsites));
+    }
+  }, [appsWebsites]);
+
+  // Listen for chatbot whitelisting custom updates in real-time
+  useEffect(() => {
+    const handleUpdate = () => {
+      const persisted = localStorage.getItem("pushnova_apps_websites");
+      if (persisted) {
+        try {
+          setAppsWebsites(JSON.parse(persisted));
+        } catch (_) {}
+      }
+    };
+    window.addEventListener("pushnova-update-apps", handleUpdate);
+    return () => {
+      window.removeEventListener("pushnova-update-apps", handleUpdate);
+    };
+  }, []);
   const [newAppName, setNewAppName] = useState("");
   const [newAppType, setNewAppType] = useState("Website");
   const [newAppUrl, setNewAppUrl] = useState("");
@@ -215,14 +251,19 @@ export default function Dashboard({ onBackToLanding, userEmail, initialPlan }: D
     e.preventDefault();
     if (!newAppName || !newAppUrl) return;
     
+    let cleanUrl = newAppUrl.trim();
+    if (!/^https?:\/\//i.test(cleanUrl)) {
+      cleanUrl = "https://" + cleanUrl;
+    }
+    
     // Check first
-    const report = await handleVerifyLinkSpam(newAppUrl, false);
+    const report = await handleVerifyLinkSpam(cleanUrl, false);
     if (report) {
       const freshApps = [
         {
           name: newAppName,
           type: newAppType,
-          url: newAppUrl,
+          url: cleanUrl,
           status: report.safe ? ("Active" as const) : ("Flagged" as const),
           added: new Date().toISOString().split('T')[0],
           spamScore: report.score,
@@ -322,11 +363,31 @@ export default function Dashboard({ onBackToLanding, userEmail, initialPlan }: D
   const [clickPrediction, setClickPrediction] = useState("Not pre-evaluated yet. Click Generate below.");
 
   // Domain configuration states
-  const [domains, setDomains] = useState([
-    { host: "pushnova.com", status: "Verified", ssl: "Active", scriptsLoaded: true },
-    { host: "developer.aistudio.build", status: "Verified", ssl: "Active", scriptsLoaded: true },
-    { host: "test-sandbox.io", status: "Pending", ssl: "Activating", scriptsLoaded: false }
-  ]);
+  const [domains, setDomains] = useState<any[]>(() => {
+    const defaultDomains = [
+      { host: "pushnova.com", status: "Verified", ssl: "Active", scriptsLoaded: true },
+      { host: "developer.aistudio.build", status: "Verified", ssl: "Active", scriptsLoaded: true },
+      { host: "test-sandbox.io", status: "Pending", ssl: "Activating", scriptsLoaded: false }
+    ];
+    if (typeof window !== "undefined") {
+      const persisted = localStorage.getItem("pushnova_domains");
+      if (persisted) {
+        try {
+          return JSON.parse(persisted);
+        } catch (_) {
+          return defaultDomains;
+        }
+      }
+    }
+    return defaultDomains;
+  });
+
+  // Synchronize domains with localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("pushnova_domains", JSON.stringify(domains));
+    }
+  }, [domains]);
   const [newDomainInput, setNewDomainInput] = useState("");
 
   // Subscriber Admin states
@@ -632,9 +693,9 @@ export default function Dashboard({ onBackToLanding, userEmail, initialPlan }: D
                         <div>
                           <label className="block text-[10px] text-gray-400 font-bold uppercase mb-1">Target Link / App Store URL</label>
                           <input 
-                            type="url"
+                            type="text"
                             required
-                            placeholder="https://myblogsite.com"
+                            placeholder="e.g. github.com/username/project"
                             value={newAppUrl}
                             onChange={(e) => setNewAppUrl(e.target.value)}
                             className="w-full bg-[#0B1120] border border-gray-800 focus:border-purple-500 rounded-lg py-2 px-3 text-xs text-white focus:outline-none font-mono"

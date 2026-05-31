@@ -471,13 +471,67 @@ export default function FloatingChatbot({ onSelectPlan, activeTab, plans }: Floa
                             <button
                               type="button"
                               onClick={() => {
+                                const targetUrl = m.actionData?.targetUrl || "";
+                                if (targetUrl) {
+                                  let cleanUrl = targetUrl;
+                                  if (!/^https?:\/\//i.test(cleanUrl)) {
+                                    cleanUrl = "https://" + cleanUrl;
+                                  }
+                                  
+                                  let guessedName = "Whitelisted Portal";
+                                  try {
+                                    const parsed = new URL(cleanUrl);
+                                    guessedName = parsed.hostname.replace("www.", "").split(".")[0];
+                                    guessedName = guessedName.charAt(0).toUpperCase() + guessedName.slice(1) + " App Portal";
+                                  } catch (_) {}
+
+                                  const defaultApps = [
+                                    { name: "My Main Website", type: "Website", url: "https://myblogsite.com", status: "Active", added: "2026-05-29", spamScore: 98, risk: "Low", checkHistory: "The link refers to a reputable or standard SaaS portal structure. SSL protocols are certified and direct click payloads appear clean.", subscribersCount: 52400, notificationsSent: 12400 },
+                                    { name: "PushMobile Client", type: "Android App", url: "https://play.google.com/store/apps/pushnova", status: "Active", added: "2026-05-28", spamScore: 95, risk: "Low", checkHistory: "Official Play Store address. Trust verified.", subscribersCount: 15200, notificationsSent: 450 },
+                                    { name: "Promotional Blast Portal", type: "Website", url: "https://free-prizes-scam.biz", status: "Flagged", added: "2026-05-27", spamScore: 12, risk: "Critical", checkHistory: "Spam / Urgent Clickbait pattern detected! High-risk malicious redirects threat.", subscribersCount: 0, notificationsSent: 0 }
+                                  ];
+
+                                  let currentList = [...defaultApps];
+                                  const persisted = localStorage.getItem("pushnova_apps_websites");
+                                  if (persisted) {
+                                    try { currentList = JSON.parse(persisted); } catch (_) {}
+                                  }
+
+                                  const existingIdx = currentList.findIndex(app => app.url === cleanUrl);
+                                  if (existingIdx > -1) {
+                                    currentList[existingIdx] = {
+                                      ...currentList[existingIdx],
+                                      status: "Active",
+                                      spamScore: m.actionData?.score || 95,
+                                      risk: m.actionData?.riskLevel || "Low",
+                                      checkHistory: "Approved and Whitelisted by administrator via Live AI Support Chatbot."
+                                    };
+                                  } else {
+                                    currentList.unshift({
+                                      name: guessedName,
+                                      type: "Website",
+                                      url: cleanUrl,
+                                      status: "Active",
+                                      added: new Date().toISOString().split('T')[0],
+                                      spamScore: m.actionData?.score || 95,
+                                      risk: m.actionData?.riskLevel || "Low",
+                                      checkHistory: m.actionData?.reason || "Approved and Whitelisted by administrator via Live AI Support Chatbot.",
+                                      subscribersCount: Math.floor(Math.random() * 8000) + 1200,
+                                      notificationsSent: 0
+                                    });
+                                  }
+
+                                  localStorage.setItem("pushnova_apps_websites", JSON.stringify(currentList));
+                                  window.dispatchEvent(new Event("pushnova-update-apps"));
+                                }
+
                                 setMessages(prev => [
                                   ...prev,
                                   {
                                     sender: "bot",
                                     text: selectedLanguage === "mixed"
-                                      ? `✅ *SYSTEM: DOMAIN APPROVED & WHITELISTED!*\n\n• Target: \`${m.actionData.targetUrl || "Selected domain"}\`\n\nIs link ko explicitly whitelisted and trust cert verify kar liya gaya hai. Purane error ya alerts drop kar diye gaye hain. Normal subscription setup safely start ho sakti hai.`
-                                      : `✅ *SYSTEM: DOMAIN APPROVED & WHITELISTED!*\n\n• Target: \`${m.actionData.targetUrl || "Selected domain"}\`\n\nExplicit administrator approval successfully registered. The target is added to PushNova safe zone database.`,
+                                      ? `✅ *SYSTEM: DOMAIN APPROVED & WHITELISTED!*\n\n• Target: \`${m.actionData?.targetUrl || "Selected domain"}\`\n\nIs link ko explicitly whitelisted and trust cert verify kar liya gaya hai. Purane error ya alerts drop kar diye gaye hain. Normal subscription setup safely start ho sakti hai.`
+                                      : `✅ *SYSTEM: DOMAIN APPROVED & WHITELISTED!*\n\n• Target: \`${m.actionData?.targetUrl || "Selected domain"}\`\n\nExplicit administrator approval successfully registered. The target is added to PushNova safe zone database.`,
                                     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                                   }
                                 ]);
@@ -489,13 +543,67 @@ export default function FloatingChatbot({ onSelectPlan, activeTab, plans }: Floa
                             <button
                               type="button"
                               onClick={() => {
+                                const targetUrl = m.actionData?.targetUrl || "";
+                                if (targetUrl) {
+                                  let cleanUrl = targetUrl;
+                                  if (!/^https?:\/\//i.test(cleanUrl)) {
+                                    cleanUrl = "https://" + cleanUrl;
+                                  }
+
+                                  let guessedName = "Unverified Target";
+                                  try {
+                                    const parsed = new URL(cleanUrl);
+                                    guessedName = parsed.hostname.replace("www.", "").split(".")[0];
+                                    guessedName = guessedName.charAt(0).toUpperCase() + guessedName.slice(1) + " App Portal";
+                                  } catch (_) {}
+
+                                  const defaultApps = [
+                                    { name: "My Main Website", type: "Website", url: "https://myblogsite.com", status: "Active", added: "2026-05-29", spamScore: 98, risk: "Low", checkHistory: "The link refers to a reputable or standard SaaS portal structure. SSL protocols are certified and direct click payloads appear clean.", subscribersCount: 52400, notificationsSent: 12400 },
+                                    { name: "PushMobile Client", type: "Android App", url: "https://play.google.com/store/apps/pushnova", status: "Active", added: "2026-05-28", spamScore: 95, risk: "Low", checkHistory: "Official Play Store address. Trust verified.", subscribersCount: 15200, notificationsSent: 450 },
+                                    { name: "Promotional Blast Portal", type: "Website", url: "https://free-prizes-scam.biz", status: "Flagged", added: "2026-05-27", spamScore: 12, risk: "Critical", checkHistory: "Spam / Urgent Clickbait pattern detected! High-risk malicious redirects threat.", subscribersCount: 0, notificationsSent: 0 }
+                                  ];
+
+                                  let currentList = [...defaultApps];
+                                  const persisted = localStorage.getItem("pushnova_apps_websites");
+                                  if (persisted) {
+                                    try { currentList = JSON.parse(persisted); } catch (_) {}
+                                  }
+
+                                  const existingIdx = currentList.findIndex(app => app.url === cleanUrl);
+                                  if (existingIdx > -1) {
+                                    currentList[existingIdx] = {
+                                      ...currentList[existingIdx],
+                                      status: "Flagged",
+                                      spamScore: m.actionData?.score || 12,
+                                      risk: "Critical",
+                                      checkHistory: "Blacklisted by administrator via Live AI Support Chatbot."
+                                    };
+                                  } else {
+                                    currentList.unshift({
+                                      name: guessedName,
+                                      type: "Website",
+                                      url: cleanUrl,
+                                      status: "Flagged",
+                                      added: new Date().toISOString().split('T')[0],
+                                      spamScore: m.actionData?.score || 12,
+                                      risk: "Critical",
+                                      checkHistory: m.actionData?.reason || "Blacklisted by administrator via Live AI Support Chatbot.",
+                                      subscribersCount: 0,
+                                      notificationsSent: 0
+                                    });
+                                  }
+
+                                  localStorage.setItem("pushnova_apps_websites", JSON.stringify(currentList));
+                                  window.dispatchEvent(new Event("pushnova-update-apps"));
+                                }
+
                                 setMessages(prev => [
                                   ...prev,
                                   {
                                     sender: "bot",
                                     text: selectedLanguage === "mixed"
-                                      ? `❌ *SYSTEM: SPAM TARGET BLOCKED!*\n\n• Target: \`${m.actionData.targetUrl || "Selected domain"}\`\n\nIs domain ko blacklisted parameters me bhej diya gya hai taki is type ke spam links dobara system me na bachein.`
-                                      : `❌ *SYSTEM: SPAM TARGET BLOCKED!*\n\n• Target: \`${m.actionData.targetUrl || "Selected domain"}\`\n\nSuccessfully blacklisted. The domain was dropped and blocked completely to ensure zero client-side spam loops.`,
+                                      ? `❌ *SYSTEM: SPAM TARGET BLOCKED!*\n\n• Target: \`${m.actionData?.targetUrl || "Selected domain"}\`\n\nIs domain ko blacklisted parameters me bhej diya gya hai taki is type ke spam links dobara system me na bachein.`
+                                      : `❌ *SYSTEM: SPAM TARGET BLOCKED!*\n\n• Target: \`${m.actionData?.targetUrl || "Selected domain"}\`\n\nSuccessfully blacklisted. The domain was dropped and blocked completely to ensure zero client-side spam loops.`,
                                     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                                   }
                                 ]);
