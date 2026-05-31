@@ -1,0 +1,6 @@
+{
+  "name": "PushNova",
+  "description": "The ultimate modern Push Notification SaaS platform — own your audience forever with unlimited push notifications and zero monthly fees.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
