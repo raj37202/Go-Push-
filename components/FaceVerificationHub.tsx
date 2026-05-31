@@ -42,7 +42,9 @@ export default function FaceVerificationHub({ onClose, onVerificationSuccess, mo
     }
 
     if (scanStep === "idle" || scanStep === "capturing") {
-      startCamera();
+      if (!stream) {
+        startCamera();
+      }
     }
 
     return () => {
@@ -53,7 +55,7 @@ export default function FaceVerificationHub({ onClose, onVerificationSuccess, mo
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, []);
+  }, [scanStep, stream]);
 
   // Update video element source when stream changes
   useEffect(() => {
@@ -119,7 +121,7 @@ export default function FaceVerificationHub({ onClose, onVerificationSuccess, mo
     return () => {
       clearTimeout(timer);
     };
-  }, [scanStep]);
+  }, [scanStep, mode, onVerificationSuccess]);
 
   // Loop drawing custom laser overlay lines onto the video helper canvas
   useEffect(() => {
